@@ -1,0 +1,40 @@
+{% extends 'indexdataupload.html' %}
+
+{% block content %}
+{% load static %}
+		<!-- BEGIN error -->
+		<div class="error-page">
+			<!-- BEGIN error-page-content -->
+			
+
+			<div class="error-page-content">
+				<div class="card mb-5 mx-auto" style="max-width: 320px;">
+					<div class="card-body">
+						<div class="card">
+							<div class="error-code">200</div>
+							<div class="card-arrow">
+								<div class="card-arrow-top-left"></div>
+								<div class="card-arrow-top-right"></div>
+								<div class="card-arrow-bottom-left"></div>
+								<div class="card-arrow-bottom-right"></div>
+							</div>
+						</div>
+					</div>
+					<div class="card-arrow">
+						<div class="card-arrow-top-left"></div>
+						<div class="card-arrow-top-right"></div>
+						<div class="card-arrow-bottom-left"></div>
+						<div class="card-arrow-bottom-right"></div>
+					</div>
+				</div>
+				<h1>Great!!</h1> 
+				<h3>File Uploaded and processed pending supervision</h3>
+				<hr>
+				
+
+			</div>
+			<!-- END error-page-content -->
+		</div>
+	
+		<!-- END error -->
+{% endblock %}

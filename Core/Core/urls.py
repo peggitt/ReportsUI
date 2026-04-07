@@ -1,0 +1,50 @@
+"""
+URL configuration for Core project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/5.1/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+
+from django.contrib import admin
+from django.urls import path
+from Report.views import Home_view,Analytics_view,Reports_view,ReportDetails_view,RequestReport_view,download_report
+from Report.views import RequestReportxlsx_view,Posted_view,FailedPosted_view
+from FileProcessing.views import DataUpload_view,post_session_data,ReconUpload_view,run_recon,reset_recon,download_reconciled,download_unreconciled
+from Report.views import Customers_view
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path('', Reports_view,name='Home'),
+    path('analytics/', Reports_view,name='Analytics'),
+    path('dashboard/', Reports_view,name='Home'),
+    path('reports/', Reports_view,name='Home'),
+    path('uploaddata/', DataUpload_view,name='Home'),
+    path('uploadrecon/', ReconUpload_view,name='ReconUpload'),
+    path('recon/run/', run_recon,name='ReconRun'),
+    path('recon/reset/', reset_recon,name='ReconReset'),
+    path('recon/download/reconciled/', download_reconciled,name='ReconDownloadReconciled'),
+    path('recon/download/unreconciled/', download_unreconciled,name='ReconDownloadUnreconciled'),
+    path('posttransactions/', post_session_data,name='Home'),
+    path('PassedTransaction/', Posted_view,name='Home'),
+    path('failedtransaction/', FailedPosted_view,name='Home'),
+    path('Customers/', Customers_view,name='Home'),
+    
+    path('reports/<str>', ReportDetails_view,name='Home'),
+    path('requestreport/', RequestReport_view,name='Home'),
+    path('requestreportxls/', RequestReportxlsx_view,name='Home'),
+    path('media/ReportFiles/<str:file_name>/', download_report, name='download_report'),
+]
+
+admin.site.site_header = "Apex Reports Admin"
+admin.site.site_title = "Apex Reports Admin Portal"
+admin.site.index_title = "Welcome to Apex Reports Core"

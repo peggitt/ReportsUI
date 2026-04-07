@@ -1,0 +1,142 @@
+{% extends 'indexdataupload.html' %}
+
+{% block content %}
+{% load static %}
+
+<script src="{% static 'assets/pjs/posttransactions.js' %}"></script>
+
+<input type="hidden" id="hdncsrf" name="hdncsrf" value="{{ csrf_token }}">
+<!-- BEGIN #content -->
+<div id="content" class="app-content">
+    <!-- BEGIN container -->
+    <div class="container">
+        <!-- BEGIN row -->
+        <div class="row justify-content-center">
+            <!-- BEGIN col-10 -->
+            <div class="col-xl-16">
+                <!-- BEGIN row -->
+                <div class="row">
+                    <!-- BEGIN col-9 -->
+                    <div class="col-xl-16">
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="#">Data Upload</a></li>
+                            <li class="breadcrumb-item active">Plutus RDataeport Viewer</li>
+                        </ul>
+                        
+                        <h1 class="page-header">
+                            <p>View data Upload Details.</p>
+                            <p><strong>Data Type:</strong> {{ upload_type_label|default:"Uploaded Data" }}</p>
+                        </h1>
+                        
+                        <hr class="mb-4" />
+                        
+                        <!-- BEGIN #datatable -->
+                        <div id="datatable" class="mb-5">
+                            <div class="card">
+                                <div class="card-body">
+                                    <ul class="nav nav-tabs flex-wrap" id="uploadTabs" role="tablist">
+                                        {% for tab in upload_tabs %}
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link {% if forloop.first %}active{% endif %} {% if not tab.summary %}disabled{% endif %}"
+                                                id="tab-{{ tab.key }}-tab"
+                                                data-bs-toggle="tab"
+                                                data-bs-target="#tab-{{ tab.key }}"
+                                                type="button"
+                                                role="tab"
+                                                aria-controls="tab-{{ tab.key }}"
+                                                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                                                {{ tab.label }}
+                                            </button>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    <div class="tab-content pt-3" id="uploadTabsContent">
+                                        {% for tab in upload_tabs %}
+                                        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="tab-{{ tab.key }}" role="tabpanel" aria-labelledby="tab-{{ tab.key }}-tab">
+                                            {% if tab.summary %}
+                                            <div class="d-flex flex-wrap gap-3 mb-3">
+                                                <span><strong>Total records:</strong> {{ tab.summary.rows|length }}</span>
+                                                <span><strong>Valid:</strong> {{ tab.summary.valid_count }}</span>
+                                                <span><strong>Invalid:</strong> {{ tab.summary.invalid_count }}</span>
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table text-nowrap w-100">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>#</th>
+                                                            {% for header in tab.summary.headers %}
+                                                            <th>{{ header }}</th>
+                                                            {% endfor %}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for row in tab.summary.rows %}
+                                                        <tr>
+                                                            <td>{{ forloop.counter }}</td>
+                                                            {% for cell in row %}
+                                                            <td>{{ cell|default:"No Value" }}</td>
+                                                            {% endfor %}
+                                                        </tr>
+                                                        {% empty %}
+                                                        <tr>
+                                                            <td colspan="{{ tab.summary.headers|length|add:'1' }}">No data available for this file type.</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="text-end mt-3">
+                                                <button type="button" class="btn btn-primary btn-sm" onclick="postUploadedData('{{ tab.key }}')">
+                                                    Post {{ tab.label }}
+                                                </button>
+                                            </div>
+                                            {% else %}
+                                            <div class="alert alert-light border mt-3 mb-0" role="alert">
+                                                No {{ tab.label|lower }} uploaded this session.
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="card-arrow">
+                                    <div class="card-arrow-top-left"></div>
+                                    <div class="card-arrow-top-right"></div>
+                                    <div class="card-arrow-bottom-left"></div>
+                                    <div class="card-arrow-bottom-right"></div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                        <!-- END #datatable -->
+                        
+                        <!-- Summary Section -->
+                        <div class="summary mt-4">
+                            <h4>Summary</h4>
+                            {% if summary_counts %}
+                                {% for summary in summary_counts %}
+                                <p>
+                                    <strong>{{ summary.label }}:</strong>
+                                    Valid {{ summary.valid }} |
+                                    Invalid {{ summary.invalid }}
+                                </p>
+                                {% endfor %}
+                            {% else %}
+                                <p>No files were processed in this session.</p>
+                            {% endif %}
+                        </div>
+                        <!-- END Summary Section -->
+                        
+                    </div>
+                    <!-- END col-9 -->
+                </div>
+                <!-- END row -->
+            </div>
+            <!-- END col-10 -->
+        </div>
+        <!-- END row -->
+    </div>
+    <!-- END container -->
+</div>
+<!-- END #content -->
+{% endblock %}

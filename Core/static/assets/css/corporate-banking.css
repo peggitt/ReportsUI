@@ -1,0 +1,336 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Serif:wght@600;700&display=swap');
+
+:root {
+  --bank-bg: #f3f6fb;
+  --bank-bg-elevated: #ffffff;
+  --bank-ink: #122038;
+  --bank-ink-muted: #60708a;
+  --bank-border: #d8e1ef;
+  --bank-navy: #0e2346;
+  --bank-navy-soft: #1e3a68;
+  --bank-teal: #00a5b9;
+  --bank-teal-soft: #e6f8fa;
+  --bank-gold: #c49a3a;
+  --bank-shadow: 0 14px 40px rgba(9, 29, 64, 0.1);
+}
+
+body {
+  background: radial-gradient(circle at 15% -10%, rgba(0, 165, 185, 0.08), transparent 38%), linear-gradient(180deg, #f8fbff 0%, var(--bank-bg) 35%, #edf2fb 100%);
+  color: var(--bank-ink);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.page-header p,
+.brand-text {
+  font-family: "IBM Plex Serif", Georgia, serif;
+  letter-spacing: 0.2px;
+}
+
+.app-header {
+  background: linear-gradient(110deg, var(--bank-navy) 0%, #132f5c 55%, #20477f 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 28px rgba(8, 24, 50, 0.35);
+}
+
+.app-header .brand-logo .brand-img {
+  background: linear-gradient(135deg, #ffffff 5%, #d8ecff 95%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.app-header .brand-logo .brand-img .brand-img-text {
+  color: var(--bank-navy);
+  font-weight: 800;
+}
+
+.app-header .brand-logo .brand-text,
+.app-header .menu-link,
+.app-header .menu-link .menu-icon,
+.app-header .menu-search-icon,
+.app-header .menu-search-icon a {
+  color: #f4f8ff !important;
+}
+
+.app-header .menu-link:hover,
+.app-header .menu-link:focus {
+  color: #ffffff !important;
+}
+
+.app-sidebar {
+  background: linear-gradient(180deg, #0d1f3f 0%, #122a52 50%, #17335f 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-sidebar .menu .menu-header {
+  color: rgba(228, 238, 255, 0.62);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+}
+
+.app-sidebar .menu .menu-link {
+  color: #ebf1ff;
+  border-radius: 10px;
+  margin: 2px 8px;
+  transition: all 0.2s ease;
+}
+
+.app-sidebar .menu .menu-link .menu-icon,
+.app-sidebar .menu .menu-link .menu-text {
+  color: inherit;
+}
+
+.app-sidebar .menu .menu-link:hover,
+.app-sidebar .menu .menu-item.active > .menu-link {
+  background: linear-gradient(90deg, rgba(0, 165, 185, 0.25), rgba(0, 165, 185, 0.1));
+  color: #ffffff;
+}
+
+.app-content {
+  background: transparent;
+}
+
+.container,
+.container-fluid {
+  padding-top: 18px;
+}
+
+.breadcrumb {
+  background: #ffffff;
+  border: 1px solid var(--bank-border);
+  border-radius: 999px;
+  box-shadow: 0 3px 12px rgba(13, 34, 66, 0.08);
+  padding: 8px 14px;
+  display: inline-flex;
+}
+
+.breadcrumb-item a {
+  color: var(--bank-navy-soft);
+  font-weight: 600;
+}
+
+.breadcrumb-item.active {
+  color: var(--bank-teal);
+  font-weight: 700;
+}
+
+.page-header p {
+  color: var(--bank-navy);
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.card {
+  border: 1px solid var(--bank-border);
+  border-radius: 16px;
+  background: var(--bank-bg-elevated);
+  box-shadow: var(--bank-shadow);
+  overflow: hidden;
+}
+
+.card .card-body {
+  padding: 1.25rem 1.35rem;
+}
+
+.table {
+  color: var(--bank-ink);
+}
+
+.table > :not(caption) > * > * {
+  border-bottom-color: #e4ecf6;
+}
+
+.table thead th {
+  background: linear-gradient(90deg, #11284d 0%, #1b3f71 100%);
+  color: #f7fbff;
+  border-bottom: none;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.table tbody tr:nth-child(odd) td {
+  background: #fbfdff;
+}
+
+.table tbody tr:hover td {
+  background: #edf4ff;
+}
+
+.group-row {
+  background: linear-gradient(90deg, #e8f2ff 0%, #f4f8ff 100%) !important;
+  border-top: 1px solid #d2e3fd;
+}
+
+.group-row td {
+  color: #133160 !important;
+  font-weight: 700 !important;
+}
+
+.group-row:hover td {
+  background: #dbeafe !important;
+}
+
+.form-label {
+  color: #21385f;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.form-control,
+.form-select {
+  background-color: #ffffff;
+  border: 1px solid #c9d8ee;
+  border-radius: 10px;
+  color: #142845;
+  box-shadow: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--bank-teal);
+  box-shadow: 0 0 0 0.2rem rgba(0, 165, 185, 0.16);
+}
+
+.app-content input.form-control,
+.app-content textarea.form-control,
+.app-content select.form-select,
+input.form-control,
+textarea.form-control,
+select.form-select {
+  background-color: #ffffff !important;
+  color: #142845 !important;
+  -webkit-text-fill-color: #142845 !important;
+  caret-color: #142845 !important;
+}
+
+.app-content input.form-control::placeholder,
+.app-content textarea.form-control::placeholder,
+input.form-control::placeholder,
+textarea.form-control::placeholder {
+  color: #7d8faa !important;
+  opacity: 1 !important;
+}
+
+input.form-control:-webkit-autofill,
+textarea.form-control:-webkit-autofill,
+select.form-select:-webkit-autofill {
+  -webkit-text-fill-color: #142845 !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+}
+
+.btn {
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.btn-outline-theme,
+.btn-theme,
+.btn-secondary.dropdown-toggle {
+  color: #f8fcff !important;
+  background: linear-gradient(90deg, #0e2c55 0%, #155590 100%);
+  border: 1px solid #0d3b71;
+  box-shadow: 0 8px 16px rgba(16, 64, 120, 0.25);
+}
+
+.btn-outline-theme:hover,
+.btn-theme:hover,
+.btn-secondary.dropdown-toggle:hover {
+  background: linear-gradient(90deg, #13407a 0%, #0ea3b9 100%);
+  color: #ffffff !important;
+}
+
+.btn-outline-default {
+  color: #224269;
+  border: 1px solid #adc1dd;
+  background: #f4f8ff;
+}
+
+.btn-outline-default:hover {
+  color: #102a4a;
+  background: #e4eefc;
+}
+
+.dropdown-menu {
+  border: 1px solid #cad9ec;
+  border-radius: 10px;
+  box-shadow: 0 10px 26px rgba(15, 40, 76, 0.18);
+}
+
+.dropdown-item {
+  font-weight: 600;
+  color: #1b3559;
+}
+
+.dropdown-item:hover {
+  background: #eaf4ff;
+  color: #12305a;
+}
+
+.dropdown-item:focus,
+.dropdown-item:active,
+.dropdown-item.active,
+.dropdown-item:focus:active {
+  background: #0f3f76 !important;
+  color: #ffffff !important;
+}
+
+.dropdown-item i {
+  color: inherit !important;
+}
+
+#datatableDefault .dropdown-menu {
+  background: #ffffff !important;
+  border: 1px solid #c9d8ee !important;
+}
+
+#datatableDefault .dropdown-menu .report-action-link {
+  color: #12355f !important;
+  background-color: #ffffff !important;
+}
+
+#datatableDefault .dropdown-menu .report-action-link:hover,
+#datatableDefault .dropdown-menu .report-action-link:focus,
+#datatableDefault .dropdown-menu .report-action-link:active,
+#datatableDefault .dropdown-menu .report-action-link.active {
+  color: #ffffff !important;
+  background: #0f3f76 !important;
+}
+
+#busyPopup {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
+}
+
+.alert-danger,
+.alert-success {
+  border-radius: 10px;
+  border-width: 1px;
+}
+
+@media (max-width: 768px) {
+  .page-header p {
+    font-size: 1.15rem;
+  }
+
+  .card .card-body {
+    padding: 1rem;
+  }
+
+  .breadcrumb {
+    border-radius: 14px;
+  }
+}

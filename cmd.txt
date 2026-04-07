@@ -1,0 +1,45 @@
+python -m venv venv
+
+venv\Scripts\activate
+
+
+pip install django
+pip install django_session_timeout
+pip install requests
+pip install django-extensions
+pip install django-allauth
+pip install jwt
+pip install pymysql reportlab pandas matplotlib
+
+----------------------------------------------------------------
+source myenv/bin/activate
+cd Core
+python3 manage.py runserver 127.0.0.1:7030
+
+
+python3 manage.py makemigrations
+python3 manage.py migrate
+python manage.py startapp StaticSetting
+
+
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/peggitt/ReportsUI.git
+git push -u origin main
+
+
+
+https://github.com/22Nm1a0530/shortlink-generator/blob/main/app.py
+
+ssh 103.102.46.2
+
+scp /Users/netbeans/Documents/ReportWriter/RepotsUI/Core.zip root@103.102.46.2:/root/Apex/
+v$FinCr3d1T@99#
+
+
+ssh root@103.102.46.2
+v$FinCr3d1T@99# 
+
+

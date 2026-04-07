@@ -1,0 +1,124 @@
+{% extends 'indexreport.html' %}
+
+{% block content %}
+{% load static %}
+
+<style>
+    .modal-footer .btn {
+        margin-left: 10px;
+    }
+</style>
+<script  src="{% static 'assets/pjs/reportdetails.js' %}"></script><!-- CUSTOM FUCTIONS  -->
+<!-- BEGIN #content -->
+<div class="warning">
+  
+    {% if messages %}
+        {% for message in messages %}
+        {% if message.tags %} class="{{ message.tags }}"{% endif %}
+            {% if message.level == 50 %}
+                <div class="alert alert-danger"><strong>Message:- </strong>{{ message }}</div>
+            {% endif %}
+            {% if message.level == 60 %}
+                <div class="alert alert-success"><strong>Message:- </strong>{{ message }}</div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    
+</div>
+
+<div id="content" class="app-content">
+    <!-- BEGIN container -->
+    <div class="container">
+        <!-- BEGIN row -->
+        <div class="row justify-content-center">
+            <!-- BEGIN col-10 -->
+            <div class="col-xl-16">
+                <!-- BEGIN row -->
+                <div class="row">
+                    
+                    <!-- BEGIN col-9 -->
+                    <div class="col-xl-16">
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="#">View Report</a></li>
+                            <li class="breadcrumb-item active">Plutus Report Details</li>
+                        </ul>
+                        
+                        <h1 class="page-header">
+                            <p>
+                                {% for data in view_report %}
+                                {{ data.ReportName }}
+                                {% endfor %}
+                                </p>
+
+                        </h1>
+
+                        
+                        
+                        <hr class="mb-4" />
+                        
+                        <div id="formControls" class="mb-5">
+                            <h4>Report Filters</h4>
+                            <p>Set the filters below, then generate either a PDF or Excel version of this report.</p>
+                            <div class="card">
+                                <div class="card-body pb-2">
+                                    <form role="form"  method="post" id="report" action="." enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        <input type="hidden" id="hdnReportId" name="hdnReportId" value="{{ ReportId }}">
+                                        <input type="hidden" id="hdncsrf" name="hdncsrf" value="{{ csrf_token }}">
+                                        <div class="row">
+                                            {% for data in Form %}
+                                                {% if data.FilterType == "VARCHAR" %}
+                                                    <div class="col-xl-4">
+                                                        <div class="form-group mb-3">
+                                                            <label class="form-label" for="{{ data.FilterName }}">{{ data.FilterName }}</label>
+                                                            <input type="text" class="form-control" id="{{ data.FilterName }}" name="{{ data.FilterName }}" placeholder="Enter Search Filter" />
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+
+                                                {% if data.FilterType == "DATETIME" %}
+                                                    <div class="col-xl-4">
+                                                        <div class="form-group mb-3">
+                                                            <label class="form-label" for="{{ data.FilterName }}">{{ data.FilterName }}</label>
+                                                            <input type="date" pattern="\d{4}-\d{2}-\d{2}" class="form-control" id="{{ data.FilterName }}" name="{{ data.FilterName }}" placeholder="" />
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-default" data-bs-dismiss="modal" onclick="window.history.back();"><< Back</button>
+                                            <button type="button" class="btn btn-outline-theme ms-2" onclick="btnviewReport();">View Report (PDF)</button>
+                                            <button type="button" class="btn btn-outline-theme ms-2" onclick="btnviewReportxls();">View Report (Excel)</button>
+
+                                        </div>
+
+                                    </form>
+                                </div>
+                                <div class="card-arrow">
+                                    <div class="card-arrow-top-left"></div>
+                                    <div class="card-arrow-top-right"></div>
+                                    <div class="card-arrow-bottom-left"></div>
+                                    <div class="card-arrow-bottom-right"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- END #bootstrapTable -->
+                    </div>
+                    <!-- END col-9-->
+                    <!-- BEGIN col-3 -->
+                    
+                    <!-- END col-3 -->
+                </div>
+                <!-- END row -->
+            </div>
+            <!-- END col-10 -->
+        </div>
+        <!-- END row -->
+    </div>
+    <!-- END container -->
+</div>
+<!-- END #content -->
+{% endblock %}

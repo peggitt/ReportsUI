@@ -1,0 +1,121 @@
+{% extends 'indexdataupload.html' %}
+
+{% block content %}
+{% load static %}
+
+
+
+<!-- BEGIN #content -->
+<div id="content" class="app-content">
+    <!-- BEGIN container -->
+    <div class="container">
+        <!-- BEGIN row -->
+        <div class="row justify-content-center">
+            <!-- BEGIN col-10 -->
+            <div class="col-xl-16">
+                <!-- BEGIN row -->
+                <div class="row">
+                    <!-- BEGIN col-9 -->
+                    <div class="col-xl-16">
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="#">Files</a></li>
+                            <li class="breadcrumb-item active">Plutus File Uploads</li>
+                        </ul>
+                        
+                        <h1 class="page-header">
+                            <p>Upload and process batch uploads...</p>
+                        </h1>
+
+                            
+                        
+                        <hr class="mb-4" />
+                        
+                        <!-- BEGIN #datatable -->
+                        <div id="fileBrowser" class="mb-5">
+                        <h4>File browser</h4>
+                        <p>Select the Fole you wish to upload to the System. </p>
+                        <div class="card">
+                            <div class="card-body">
+                                <form method="post" enctype="multipart/form-data" action=".">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-xl-6">
+                                        <div class="mb-3">
+                                            <label class="form-label" for="transactionsfile">Transaction File Upload</label>
+                                            <input type="file" class="form-control" id="transactionsfile" name="transactionsfile">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="batchfile">Batch Tranfer Upload</label>
+                                            <input type="file" class="form-control" id="batchfile" name="batchfile">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="disabledFile">Salary Upload</label>
+                                            <input type="file" class="form-control" id="salaryfile" name="salaryfile">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-6">
+                                        <div class="mb-3">
+                                            <label class="form-label" for="customerfile">Batch Customer Data Upload</label>
+                                            <input type="file" class="form-control form-control-sm" id="customerfile" name="customerfile">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="accountsfile">Batch Customer Accounts Data Upload</label>
+                                            <input type="file" class="form-control form-control-lg" id="accountsfile" name="accountsfile">
+                                        </div>
+                                         <div class="mb-3">
+                                            <label class="form-label" for="ovewrdraftfile">Batch Overdraft Data Upload</label>
+                                            <input type="file" class="form-control form-control-sm" id="ovewrdraftfile" name="ovewrdraftfile">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="submit-btn">
+                                    <button type="submit" class="btn btn-primary btn-lg">Upload Files</button>
+                                </div>
+                            </form>
+
+                            {% if messages %}
+                            <div class="mt-4">
+                                {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="color: crimson;">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+  
+
+                            </div>
+                            <div class="card-arrow">
+                                <div class="card-arrow-top-left"></div>
+                                <div class="card-arrow-top-right"></div>
+                                <div class="card-arrow-bottom-left"></div>
+                                <div class="card-arrow-bottom-right"></div>
+                            </div>
+                            <div class="hljs-container">
+                                <pre><code class="xml" data-url="assets/data/form-elements/code-10.json"></code></pre>
+                            </div>
+                        </div>
+                    </div>
+                        <!-- END #datatable -->
+                        
+                        <!-- BEGIN #bootstrapTable -->
+                    
+                        <!-- END #bootstrapTable -->
+                    </div>
+                    <!-- END col-9-->
+                    <!-- BEGIN col-3 -->
+                    
+                    <!-- END col-3 -->
+                </div>
+                <!-- END row -->
+            </div>
+            <!-- END col-10 -->
+        </div>
+        <!-- END row -->
+    </div>
+    <!-- END container -->
+</div>
+<!-- END #content -->
+{% endblock %}

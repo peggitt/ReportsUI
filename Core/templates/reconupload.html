@@ -1,0 +1,155 @@
+{% extends 'indexdataupload.html' %}
+
+{% block content %}
+{% load static %}
+
+<script src="{% static 'assets/pjs/reconupload.js' %}"></script>
+
+<div id="content" class="app-content">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-16">
+                <div class="row">
+                    <div class="col-xl-16">
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="#">Data Upload</a></li>
+                            <li class="breadcrumb-item active">Reconciliation Upload</li>
+                        </ul>
+
+                        <h1 class="page-header">
+                            <p>Upload a reconciliation file, map its columns, and build the payload for the backend.</p>
+                        </h1>
+
+                        <hr class="mb-4" />
+
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <form method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <div class="row">
+                                        <div class="col-xl-8">
+                                            <div class="mb-3">
+                                                <label class="form-label" for="reconfile">Reconciliation File</label>
+                                                <input type="file" class="form-control" id="reconfile" name="reconfile" accept=".csv,.xls,.xlsx,.json,.pdf" required>
+                                                <small class="form-text text-muted">Supported formats: CSV, Excel, JSON, PDF (PDFs are run through marker-pdf with OCR; the first table or text lines will be available for mapping).</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="submit-btn">
+                                        <button type="submit" class="btn btn-primary btn-lg">Upload Recon File</button>
+                                    </div>
+                                </form>
+
+                                {% if messages %}
+                                <div class="mt-3">
+                                    {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-arrow">
+                                <div class="card-arrow-top-left"></div>
+                                <div class="card-arrow-top-right"></div>
+                                <div class="card-arrow-bottom-left"></div>
+                                <div class="card-arrow-bottom-right"></div>
+                            </div>
+                        </div>
+
+                        {% if has_data %}
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                    <div>
+                                        <strong>{{ record_count }}</strong> records ready for mapping
+                                        {% if uploaded_filename %} from <strong>{{ uploaded_filename }}</strong>{% endif %}
+                                    </div>
+                                    <div id="reconJsonStatus"></div>
+                                </div>
+
+                                <form id="recon-mapping-form">
+                                    {% csrf_token %}
+                                    <div class="row g-3">
+                                        {% for static_field in static_fields %}
+                                        <div class="col-md-4">
+                                            <label class="form-label">{{ static_field }}</label>
+                                            <select class="form-select" name="{{ static_field }}" required>
+                                                <option value="">Select column</option>
+                                                {% for header in headers %}
+                                                <option value="{{ header }}">{{ header }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="mt-4 d-flex gap-2">
+                                        <button type="reset" class="btn btn-outline-secondary">Reset Mapping</button>
+                                    </div>
+                                </form>
+
+                                <div class="mt-4">
+                                    <h5>Reconciliation status</h5>
+                                    <pre class="bg-light p-3 border rounded" id="reconJsonPreview" style="max-height: 320px; overflow:auto;">Select mappings, then choose Run Recon to fetch matches.</pre>
+                                </div>
+
+                                <div class="mt-4 d-flex justify-content-end gap-2">
+                                    <button type="button" id="cancelRecon" class="btn btn-outline-danger">Cancel</button>
+                                    <button type="button" id="runRecon" class="btn btn-primary">Run Recon</button>
+                                </div>
+                                <div class="mt-3 d-flex gap-2 flex-wrap" id="reconDownloadLinks"></div>
+                            </div>
+                            <div class="card-arrow">
+                                <div class="card-arrow-top-left"></div>
+                                <div class="card-arrow-top-right"></div>
+                                <div class="card-arrow-bottom-left"></div>
+                                <div class="card-arrow-bottom-right"></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">File Preview</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm text-nowrap">
+                                        <thead>
+                                            <tr>
+                                                {% for header in headers %}
+                                                <th>{{ header }}</th>
+                                                {% endfor %}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for row in preview_rows %}
+                                            <tr>
+                                                {% for cell in row %}
+                                                <td>{{ cell }}</td>
+                                                {% endfor %}
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="{{ headers|length }}">No preview available.</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-arrow">
+                                <div class="card-arrow-top-left"></div>
+                                <div class="card-arrow-top-right"></div>
+                                <div class="card-arrow-bottom-left"></div>
+                                <div class="card-arrow-bottom-right"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
