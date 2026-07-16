@@ -8,7 +8,8 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.dateparse import parse_date
 from datetime import datetime
-from Report.models import ReportFile,ReportFileDetail
+from numbers import Number
+from Report.models import ReportFile, ReportFileDetail, ReportColumnDefinition
 from . import Configs
 from openpyxl.utils import get_column_letter
 
@@ -41,6 +42,8 @@ import zeep
 from itertools import groupby
 from operator import itemgetter
 from operator import attrgetter
+
+SEARCH_POPUP_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "search_popup_config.json")
 
 # Create your views here.
 @csrf_exempt
@@ -367,6 +370,167 @@ def construct_header(json_data):
     else:
         return ''
 
+
+def _normalize_search_field_key(value):
+    return re.sub(r"[^a-z0-9]", "", str(value or "").lower())
+
+
+def _load_search_popup_configs():
+    with open(SEARCH_POPUP_CONFIG_PATH, "r", encoding="utf-8") as config_file:
+        config = json.load(config_file)
+    return config.get("fields", {})
+
+
+@csrf_exempt
+def ReportFieldSearchConfig_view(request, *args, **kwargs):
+    if request.method != "GET":
+        return JsonResponse({"error": "Method not allowed."}, status=405)
+
+    try:
+        raw_configs = _load_search_popup_configs()
+        response_configs = {}
+
+        for field_name, cfg in raw_configs.items():
+            key = _normalize_search_field_key(field_name)
+            search_fields = cfg.get("search_fields", [])
+            response_configs[key] = {
+                "field_name": field_name,
+                "title": cfg.get("title", f"Search {field_name}"),
+                "search_fields": [
+                    {
+                        "name": item.get("name"),
+                        "label": item.get("label", item.get("name", "")),
+                    }
+                    for item in search_fields
+                    if item.get("name")
+                ],
+                "display_columns": cfg.get("display_columns", []),
+                "value_field": cfg.get("value_field"),
+            }
+
+        return JsonResponse({"configs": response_configs}, status=200)
+    except Exception as exc:
+        return JsonResponse({"error": str(exc)}, status=500)
+
+
+@csrf_exempt
+def ReportFieldSearchData_view(request, *args, **kwargs):
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed."}, status=405)
+
+    connection = None
+    try:
+        payload = {}
+        if request.content_type and "application/json" in request.content_type:
+            payload = json.loads(request.body.decode("utf-8") or "{}")
+        else:
+            payload = request.POST.dict()
+
+        target_field = payload.get("target_field")
+        criteria = payload.get("criteria", {})
+        if not isinstance(criteria, dict):
+            return JsonResponse({"error": "Invalid criteria payload."}, status=400)
+
+        raw_configs = _load_search_popup_configs()
+        normalized_target = _normalize_search_field_key(target_field)
+        active_config = None
+        active_field_name = None
+
+        for field_name, cfg in raw_configs.items():
+            if _normalize_search_field_key(field_name) == normalized_target:
+                active_config = cfg
+                active_field_name = field_name
+                break
+
+        if not active_config:
+            return JsonResponse({"error": "No search config found for field."}, status=404)
+
+        base_query = str(active_config.get("base_query", "")).strip()
+        if not base_query or not base_query.lower().startswith("select"):
+            return JsonResponse({"error": "Invalid base query in search config."}, status=500)
+
+        query_parts = [base_query]
+        query_params = []
+
+        for search_field in active_config.get("search_fields", []):
+            field_name = search_field.get("name")
+            condition = search_field.get("condition")
+            if not field_name or not condition:
+                continue
+
+            value = criteria.get(field_name)
+            if value is None:
+                value = criteria.get(_normalize_search_field_key(field_name))
+            if value is None:
+                continue
+
+            value = str(value).strip()
+            if not value:
+                continue
+
+            match_type = str(search_field.get("match", "contains")).lower()
+            if match_type == "contains":
+                parameter_value = f"%{value}%"
+            elif match_type == "startswith":
+                parameter_value = f"{value}%"
+            elif match_type == "endswith":
+                parameter_value = f"%{value}"
+            else:
+                parameter_value = value
+
+            query_parts.append(condition)
+            query_params.append(parameter_value)
+
+        order_by = str(active_config.get("order_by", "")).strip()
+        if order_by:
+            query_parts.append(order_by)
+
+        result_limit = active_config.get("result_limit", 100)
+        try:
+            result_limit = max(1, min(int(result_limit), 500))
+        except (TypeError, ValueError):
+            result_limit = 100
+
+        final_query = " ".join(query_parts) + " LIMIT %s"
+        query_params.append(result_limit)
+
+        first_record = FileProcessSetting.objects.first()
+        if not first_record:
+            return JsonResponse({"error": "Core database settings not configured."}, status=500)
+
+        connection = connect_to_mysql(
+            first_record.Corehost,
+            first_record.Coreport,
+            first_record.Coredatabase,
+            first_record.Coreusername,
+            first_record.Corepassword,
+        )
+        if not connection:
+            return JsonResponse({"error": "Unable to connect to core database."}, status=500)
+
+        with connection.cursor() as cursor:
+            cursor.execute(final_query, tuple(query_params))
+            rows = cursor.fetchall()
+
+        display_columns = active_config.get("display_columns", [])
+        if not display_columns and rows:
+            display_columns = list(rows[0].keys())
+
+        return JsonResponse(
+            {
+                "field_name": active_field_name,
+                "value_field": active_config.get("value_field"),
+                "display_columns": display_columns,
+                "rows": rows,
+            },
+            status=200,
+        )
+    except Exception as exc:
+        return JsonResponse({"error": str(exc)}, status=500)
+    finally:
+        if connection:
+            connection.close()
+
 @csrf_exempt
 def RequestReport_view(request, *args, **kwargs):
     if Configs.is_ajax(request):
@@ -417,15 +581,18 @@ def RequestReport_view(request, *args, **kwargs):
                 formatted_datetime = now.strftime("%Y%m%d_%H%M%S")
 
                 # Generate PDF report
-                if not df.empty:
-                    create_pdf(
-                        df, 
-                        dfHeaders,
-                        f"report_{formatted_datetime}.pdf", 
-                        title=ReportName,
-                        subtitle=ReportSDesc,
-                        include_chart=False
-                    )
+                if df.empty:
+                    raise ValueError("No data returned for the selected filters.")
+
+                create_pdf(
+                    df, 
+                    dfHeaders,
+                    f"report_{formatted_datetime}.pdf", 
+                    title=ReportName,
+                    subtitle=ReportSDesc,
+                    include_chart=False,
+                    report_id=hdnReportId
+                )
                 print('Executing Report Completed')
                 # Close connection
             connection.close()
@@ -560,9 +727,9 @@ def execute_stored_procedure(connection,procedure_name, params=None):
             return df1, df2
             
     except Exception as e:
-        print(f"Error executing stored procedure {procedure_name}: {e}")
-        # Return empty DataFrames on error
-        return pd.DataFrame(), pd.DataFrame()
+        error_message = f"Error executing stored procedure {procedure_name}: {e}"
+        print(error_message)
+        raise ValueError(error_message)
     
     
 PDF_PRIMARY = colors.HexColor("#102C57")
@@ -684,6 +851,103 @@ def _coerce_value(value):
     return str(value)
 
 
+def _normalize_col(name):
+    return str(name).strip().lower()
+
+
+def _is_numeric_type_name(data_type):
+    if not data_type:
+        return False
+    numeric_tokens = {"number", "numeric", "int", "integer", "decimal", "float", "double", "money", "amount"}
+    return any(token in str(data_type).strip().lower() for token in numeric_tokens)
+
+
+def _is_numeric_column(series, data_type=None):
+    if _is_numeric_type_name(data_type):
+        return True
+    return pd.api.types.is_numeric_dtype(series)
+
+
+def _format_report_value(value, is_numeric=False):
+    if value is None or pd.isna(value):
+        return ""
+    if is_numeric and isinstance(value, Number) and not isinstance(value, bool):
+        if isinstance(value, float) and not float(value).is_integer():
+            return f"{value:,.2f}"
+        return f"{int(value):,}"
+    return str(value)
+
+
+def _to_pdf_col_width(raw_width):
+    if raw_width is None:
+        return None
+    try:
+        width = float(raw_width)
+        if width <= 0:
+            return None
+        return max(0.8, min(6.0, width * 0.12)) * inch
+    except (TypeError, ValueError):
+        return None
+
+
+def _to_excel_col_width(raw_width):
+    if raw_width is None:
+        return None
+    try:
+        width = float(raw_width)
+        if width <= 0:
+            return None
+        return width
+    except (TypeError, ValueError):
+        return None
+
+
+def get_report_column_config(report_id, df):
+    if df.empty:
+        return [], {}, {}, {}, {}
+
+    data_columns = [col for col in df.columns if _normalize_col(col) != "descr"]
+    defs = ReportColumnDefinition.objects.filter(ReportId=report_id).order_by("SortOrder", "ReportColumnId")
+
+    if not defs.exists():
+        default_numeric = {
+            col: _is_numeric_column(df[col])
+            for col in data_columns
+        }
+        default_align = {col: "LEFT" for col in data_columns}
+        return data_columns, {col: col for col in data_columns}, {}, default_numeric, default_align
+
+    df_cols_by_norm = {_normalize_col(col): col for col in data_columns}
+    selected_columns = []
+    display_names = {}
+    column_widths = {}
+    numeric_columns = {}
+    column_alignments = {}
+
+    for col_def in defs:
+        normalized_name = _normalize_col(col_def.ColumnName)
+        source_col = df_cols_by_norm.get(normalized_name)
+        if not source_col:
+            continue
+        if not col_def.isVisible:
+            continue
+        if source_col not in selected_columns:
+            selected_columns.append(source_col)
+        display_names[source_col] = (col_def.DisplayName or source_col).strip()
+        column_widths[source_col] = col_def.ColumnWidth
+        numeric_columns[source_col] = _is_numeric_column(df[source_col], col_def.DataType)
+        column_alignments[source_col] = (col_def.LoadSide or "LEFT").upper()
+
+    if not selected_columns:
+        selected_columns = data_columns
+        for col in selected_columns:
+            display_names[col] = col
+            numeric_columns[col] = _is_numeric_column(df[col])
+            column_alignments[col] = "LEFT"
+
+    return selected_columns, display_names, column_widths, numeric_columns, column_alignments
+
+
 def _build_filter_table(df_headers, styles, available_width):
     if df_headers.empty:
         return None
@@ -784,7 +1048,7 @@ def create_pdf_Logo(df, output_path, title="Database Report", subtitle=None,
 
 
 def create_pdf(df, dfHeaders, output_path, title="Database Report", subtitle=None,
-               orientation='landscape', page_size='A4', include_chart=False):
+               orientation='landscape', page_size='A4', include_chart=False, report_id=None):
     """
     Generate a branded PDF report from a pandas DataFrame.
     """
@@ -834,23 +1098,32 @@ def create_pdf(df, dfHeaders, output_path, title="Database Report", subtitle=Non
         print(f"PDF report saved to: {output_path}")
         return output_path
 
-    visible_columns = [col for col in df.columns if col != 'descr']
-    if not visible_columns:
+    selected_columns, display_names, column_widths, numeric_columns, column_alignments = get_report_column_config(report_id, df)
+    if not selected_columns:
         elements.append(Paragraph("No visible report columns to display.", styles['normal']))
         doc.build(elements)
         print(f"PDF report saved to: {output_path}")
         return output_path
 
-    table_header = [Paragraph(_coerce_value(col), styles['table_header']) for col in visible_columns]
+    table_header = [Paragraph(_coerce_value(display_names.get(col, col)), styles['table_header']) for col in selected_columns]
     table_rows = []
-    col_widths = _default_col_widths(doc.width, len(visible_columns))
+    default_col_width = doc.width / len(selected_columns)
+    col_widths = []
+    for col in selected_columns:
+        configured_width = _to_pdf_col_width(column_widths.get(col))
+        col_widths.append(configured_width or default_col_width)
+    right_aligned_col_indices = []
+    for idx, col in enumerate(selected_columns):
+        configured_align = column_alignments.get(col, "LEFT")
+        if configured_align == "RIGHT" or numeric_columns.get(col, False):
+            right_aligned_col_indices.append(idx)
     has_data_table = False
 
     def flush_rows(add_page_break=False):
         nonlocal has_data_table
         if table_rows:
             table = Table([table_header] + table_rows, colWidths=col_widths, repeatRows=1)
-            apply_table_style(table)
+            apply_table_style(table, right_aligned_col_indices=right_aligned_col_indices)
             elements.append(table)
             table_rows.clear()
             has_data_table = True
@@ -865,7 +1138,10 @@ def create_pdf(df, dfHeaders, output_path, title="Database Report", subtitle=Non
             continue
 
         row_style = styles['bold'] if descriptor == 'bold' else styles['normal']
-        formatted_row = [Paragraph(_coerce_value(row.get(col, '')), row_style) for col in visible_columns]
+        formatted_row = [
+            Paragraph(_format_report_value(row.get(col, ''), numeric_columns.get(col, False)), row_style)
+            for col in selected_columns
+        ]
         table_rows.append(formatted_row)
 
     flush_rows(add_page_break=False)
@@ -887,9 +1163,9 @@ def format_output(value):
     else:
         return "Unsupported type"
 
-def apply_table_style(table):
+def apply_table_style(table, right_aligned_col_indices=None):
     """Apply corporate banking styling to report tables."""
-    table.setStyle(TableStyle([
+    table_style = TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), PDF_PRIMARY),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
@@ -907,7 +1183,11 @@ def apply_table_style(table):
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('LEFTPADDING', (0, 0), (-1, -1), 4),
         ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-    ]))
+    ])
+    if right_aligned_col_indices:
+        for col_idx in right_aligned_col_indices:
+            table_style.add('ALIGN', (col_idx, 1), (col_idx, -1), 'RIGHT')
+    table.setStyle(table_style)
 
 
 def parse_formatting_tags(text):
@@ -1074,98 +1354,90 @@ def RequestReportxlsx_view(request, *args, **kwargs):
                 
 
                 # Generate EXCEL report
-                if not df.empty:
-                    # Create a new workbook
-                    wb = Workbook()
-                    ws = wb.active
+                if df.empty:
+                    raise ValueError("No data returned for the selected filters.")
+
+                selected_columns, display_names, column_widths, numeric_columns, column_alignments = get_report_column_config(hdnReportId, df)
+                excel_df = df[selected_columns].copy() if selected_columns else df.copy()
+                excel_df.rename(columns=display_names, inplace=True)
+
+                # Create a new workbook
+                wb = Workbook()
+                ws = wb.active
                     
-                    # Add a logo (replace 'logo.png' with your logo path)
-                    logo = Image("Fincredit.png")  # Ensure the logo file exists
-                    logo.height = 50  # Adjust height as needed
-                    logo.width = 350  # Adjust width as needed
-                    ws.add_image(logo, 'D1')  # Place logo in cell A1
+                # Add a logo (replace 'logo.png' with your logo path)
+                logo = Image("Fincredit.png")  # Ensure the logo file exists
+                logo.height = 50  # Adjust height as needed
+                logo.width = 350  # Adjust width as needed
+                ws.add_image(logo, 'D1')  # Place logo in cell A1
 
-                    # Add report title below the logo (row 2)
-                    report_title = ReportName  # Replace with your title
-                    ws['A5'] = report_title
-                    ws['A5'].font = Font(size=16, bold=True)
-                    ws.merge_cells('A5:H5')  # Merge cells for the title (adjust range as needed)
-                    ws['A5'].alignment = Alignment(horizontal='center')
-                   # for cell in ws[8]:
-                   #     cell.font = Font(size=14, bold=True)
-                    print(' headers')
-                    Report_Filters = construct_header(search_json)
+                # Add report title below the logo (row 2)
+                report_title = ReportName  # Replace with your title
+                ws['A5'] = report_title
+                ws['A5'].font = Font(size=16, bold=True)
+                ws.merge_cells('A5:H5')  # Merge cells for the title (adjust range as needed)
+                ws['A5'].alignment = Alignment(horizontal='center')
+               # for cell in ws[8]:
+               #     cell.font = Font(size=14, bold=True)
+                print(' headers')
+                Report_Filters = construct_header(search_json)
 
-                    print('end headers')
-                    #Report_Filters ="Report For Branch " + params[0] + " To Branch " + params[1] + " From " + params[2] + " To " + params[3]
-                    #ws['A9'].font = Font(size=14, bold=True) 
-                    #ws.merge_cells('A9:C9')
-                    ws['B6'].alignment = Alignment(horizontal='center') 
-                    ws['B6'] = Report_Filters
-                    ws.merge_cells('A6:D6')
-                    print(Report_Filters)
-                    # Write DataFrame starting from row 10 (leaving space for logo and title)
-                    ##for r in dataframe_to_rows(df, index=False, header=True):
+                print('end headers')
+                #Report_Filters ="Report For Branch " + params[0] + " To Branch " + params[1] + " From " + params[2] + " To " + params[3]
+                #ws['A9'].font = Font(size=14, bold=True) 
+                #ws.merge_cells('A9:C9')
+                ws['B6'].alignment = Alignment(horizontal='center') 
+                ws['B6'] = Report_Filters
+                ws.merge_cells('A6:D6')
+                print(Report_Filters)
+                for row in dataframe_to_rows(excel_df, index=False, header=True):
+                    ws.append(row)
 
-                    for r_idx, row in enumerate(dataframe_to_rows(df, index=False, header=True), 7):
-                        ws.append(row)
-                        
-                        descr_col_idx = None
-                        if 'descr' in df.columns:
-                            descr_col_idx = df.columns.get_loc('descr')
-                        
-                        current_row = ws.max_row
-                        if descr_col_idx is not None and row[descr_col_idx] == 'Bold':
-                            for cell in ws[current_row]:
-                                cell.font = Font(bold=False)
-                            
-                        if descr_col_idx is not None:
-                            # Since we excluded it from row_data, we need to adjust for 0-based vs 1-based indexing
-                            excel_descr_col = descr_col_idx + 1  # Convert pandas 0-index to Excel 1-index
-                            ws.column_dimensions[get_column_letter(excel_descr_col)].hidden = True
-	
-	                    # Format numeric cells (skip header row when r_idx=4)
-                        if r_idx > 7:  # Data starts at row 5
-                            for c_idx, value in enumerate(row, 1):
-                                cell = ws.cell(row=r_idx, column=c_idx)
-                                
-                                # Check if numeric and format
-                                if isinstance(value, (int, float)) and value is not None:
-                                    cell.number_format = '#,##0'  # Base format
-                                    if isinstance(value, float):
-                                        cell.number_format = '#,##0.00' 
+                for cell in ws[7]:
+                    cell.font = Font(size=14, bold=True)
 
+                for row_idx in range(8, ws.max_row + 1):
+                    for col_idx, source_col in enumerate(selected_columns, 1):
+                        cell = ws.cell(row=row_idx, column=col_idx)
+                        value = cell.value
+                        if value is None:
+                            continue
 
+                        force_right = column_alignments.get(source_col, "LEFT") == "RIGHT"
+                        is_numeric = numeric_columns.get(source_col, False)
+                        if is_numeric and isinstance(value, Number) and not isinstance(value, bool):
+                            if isinstance(value, float) and not float(value).is_integer():
+                                cell.number_format = '#,##0.00'
+                            else:
+                                cell.number_format = '#,##0'
+                            cell.alignment = Alignment(horizontal='right')
+                        else:
+                            cell.alignment = Alignment(horizontal='right' if force_right else 'left')
 
+                if ws.max_row >= 8:
+                    for cell in ws[ws.max_row]:
+                        cell.font = Font(size=11, bold=False)
 
+                for col_idx, source_col in enumerate(selected_columns, 1):
+                    column_letter = get_column_letter(col_idx)
+                    configured_width = _to_excel_col_width(column_widths.get(source_col))
+                    if configured_width:
+                        ws.column_dimensions[column_letter].width = configured_width
+                        continue
+
+                    max_length = len(str(display_names.get(source_col, source_col)))
+                    for row_idx in range(8, ws.max_row + 1):
+                        value = ws.cell(row=row_idx, column=col_idx).value
+                        if value is None:
+                            continue
+                        max_length = max(max_length, len(str(value)))
+                    ws.column_dimensions[column_letter].width = max_length + 2
                     
-
-                    for cell in ws[7]:
-                        cell.font = Font(size=14, bold=True)
-  
-
-                        last_row = ws.max_row
-                        for cell in ws[last_row]:
-                            cell.font = Font(size=11, bold=False)
-
-                    # Adjust column widths (optional)
-                    for column in ws.columns:
-                        max_length = 0
-                        column_letter = column[0].column_letter
-                        for cell in column:
-                            try:
-                                if len(str(cell.value)) > max_length:
-                                    max_length = len(str(cell.value))
-                            except:
-                                pass
-                        adjusted_width = (max_length) #* 1.2
-                        ws.column_dimensions[column_letter].width = adjusted_width
-                    
-                    print("df here")    
-                    # Save the file
-                    output_path = os.path.join("media/ReportFiles", f"report_{formatted_datetime}.xlsx")  # Saves as 'media/report.xlsx'
-                    wb.save(output_path)
-                    print("done")
+                print("df here")    
+                # Save the file
+                output_path = os.path.join("media/ReportFiles", f"report_{formatted_datetime}.xlsx")  # Saves as 'media/report.xlsx'
+                wb.save(output_path)
+                print("done")
                 print('Executing Report Completed')
                 # Close connection
             connection.close()

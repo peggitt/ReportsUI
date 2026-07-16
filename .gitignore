@@ -1,0 +1,16 @@
+# Python environments
+myenv/
+venv/
+.venv/
+
+# Runtime secrets
+.env
+**/.env
+
+# Generated Python and OS files
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Local deployment/source archives may contain runtime secrets
+*.zip

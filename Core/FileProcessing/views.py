@@ -152,7 +152,7 @@ def DataUpload_view(request, *args, **kwargs):
                                 dataset.at[index, 'Remarks'] = 'Invalid General Ledger Account - Posted to Suspense: ' + str(idAccount)
 
                         else:
-                            query = "SELECT AccountID FROM tb_accountcustomer WHERE ACCOUNTID = %s"
+                            query = "SELECT AccountID FROM tb_accountcustomer WHERE ACCOUNTSTATUSID <> 'AC' and ACCOUNTID = %s"
                             cursor.execute(query, (idAccount,))
                             result = cursor.fetchone()
 
@@ -162,7 +162,7 @@ def DataUpload_view(request, *args, **kwargs):
                                 dataset.at[index, 'AccountID'] = account_id
 
                             else:
-                                query = "SELECT AccountID FROM tb_accountcustomer WHERE OLDACCOUNTID = %s"
+                                query = "SELECT AccountID FROM tb_accountcustomer WHERE ACCOUNTSTATUSID <> 'AC' and OLDACCOUNTID = %s"
                                 cursor.execute(query, (OldAccountID,))
                                 result = cursor.fetchone()
                                 
@@ -172,7 +172,7 @@ def DataUpload_view(request, *args, **kwargs):
                                     dataset.at[index, 'AccountID'] = account_id
 
                                 else:
-                                    query = "SELECT AccountID FROM tb_accountcustomer WHERE MOBILE = %s"
+                                    query = "SELECT AccountID FROM tb_accountcustomer WHERE ACCOUNTSTATUSID <> 'AC' and MOBILE = %s"
                                     cursor.execute(query, (MobileNumber,))
                                     result = cursor.fetchone()
 
@@ -187,6 +187,8 @@ def DataUpload_view(request, *args, **kwargs):
                                         FROM tb_accountcustomer ac
                                         JOIN tb_customermaster cm ON ac.CLIENTID = cm.CUSTOMERID
                                         AND cm.IDNO = %s
+                                         and ACCOUNTSTATUSID <> 'AC' 
+                                         order by ac.AccountID desc
                                         """
                                         cursor.execute(query, (IDNumber))
                                         result = cursor.fetchone()
@@ -199,7 +201,7 @@ def DataUpload_view(request, *args, **kwargs):
                                             dataset.at[index, 'Status'] = 'Invalid'
                                             dataset.at[index, 'AccountID'] = invalid_account_ledger
                                             dataset.at[index, 'Account Type'] = 'G'
-                                            dataset.at[index, 'Remarks'] = 'Invalid Account - Posted to Suspense: ' + str(idAccount)
+                                            dataset.at[index, 'Remarks'] = f'Invalid Account {IDNumber},{MobileNumber},{OldAccountID},{idAccount},- Posted to Suspense: ' + str(idAccount)
 
                     except zeep.exceptions.Fault as fault:
                         print(f"SOAP Fault for AccountID {idAccount}: {fault}")

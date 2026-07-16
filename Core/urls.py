@@ -18,7 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from Report.views import Home_view,Analytics_view,Reports_view,ReportDetails_view,RequestReport_view,download_report
-from Report.views import RequestReportxlsx_view
+from Report.views import RequestReportxlsx_view, ReportFieldSearchConfig_view, ReportFieldSearchData_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -29,6 +29,8 @@ urlpatterns = [
     path('reports/<str>', ReportDetails_view,name='Home'),
     path('requestreport/', RequestReport_view,name='Home'),
     path('requestreportxls/', RequestReportxlsx_view,name='Home'),
+    path('report-field-search/config/', ReportFieldSearchConfig_view, name='ReportFieldSearchConfig'),
+    path('report-field-search/query/', ReportFieldSearchData_view, name='ReportFieldSearchData'),
     path('media/ReportFiles/<str:file_name>/', download_report, name='download_report'),
 ]
 

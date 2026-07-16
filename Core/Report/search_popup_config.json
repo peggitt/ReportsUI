@@ -1,0 +1,76 @@
+{
+  "fields": {
+    "FromBranchID": {
+      "title": "Search From Branch",
+      "base_query": "SELECT BranchID, BranchName FROM tb_branchsettings WHERE 1=1",
+      "search_fields": [
+        {
+          "name": "BranchID",
+          "label": "Branch ID",
+          "condition": "AND BranchID LIKE %s",
+          "match": "contains"
+        },
+        {
+          "name": "BranchName",
+          "label": "Branch Name",
+          "condition": "AND BranchName LIKE %s",
+          "match": "contains"
+        }
+      ],
+      "display_columns": ["BranchID", "BranchName"],
+      "value_field": "BranchID",
+      "order_by": "ORDER BY BranchID",
+      "result_limit": 100
+    },
+    "ToBranchID": {
+      "title": "Search To Branch",
+      "base_query": "SELECT BranchID, BranchName FROM tb_branchsettings WHERE 1=1",
+      "search_fields": [
+        {
+          "name": "BranchID",
+          "label": "Branch ID",
+          "condition": "AND BranchID LIKE %s",
+          "match": "contains"
+        },
+        {
+          "name": "BranchName",
+          "label": "Branch Name",
+          "condition": "AND BranchName LIKE %s",
+          "match": "contains"
+        }
+      ],
+      "display_columns": ["BranchID", "BranchName"],
+      "value_field": "BranchID",
+      "order_by": "ORDER BY BranchID",
+      "result_limit": 100
+    },
+    "AccountID": {
+      "title": "Search Account",
+      "base_query": "SELECT AccountID, OldAccountID, MOBILE, ClientId,AccountName FROM tb_accountcustomer WHERE 1=1",
+      "search_fields": [
+        {
+          "name": "AccountID",
+          "label": "Account ID",
+          "condition": "AND AccountID LIKE %s",
+          "match": "contains"
+        },
+        {
+          "name": "OldAccountID",
+          "label": "Old Account ID",
+          "condition": "AND OldAccountID LIKE %s",
+          "match": "contains"
+        },
+        {
+          "name": "MOBILE",
+          "label": "Mobile",
+          "condition": "AND MOBILE LIKE %s",
+          "match": "contains"
+        }
+      ],
+      "display_columns": ["AccountID", "OldAccountID", "MOBILE", "ClientId", "AccountName"],
+      "value_field": "AccountID",
+      "order_by": "ORDER BY AccountID",
+      "result_limit": 100
+    }
+  }
+}

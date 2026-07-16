@@ -23,7 +23,7 @@
                         </ul>
                         
                         <h1 class="page-header">
-                            <p>Upload and process batch uploads...</p>
+                            <p>Upload and process batch data</p>
                         </h1>
 
                             
@@ -32,24 +32,29 @@
                         
                         <!-- BEGIN #datatable -->
                         <div id="fileBrowser" class="mb-5">
-                        <h4>File browser</h4>
-                        <p>Select the Fole you wish to upload to the System. </p>
-                        <div class="card">
+                        <div class="card upload-card">
                             <div class="card-body">
+                                <div class="upload-card-header">
+                                    <div>
+                                        <h4>Batch File Uploads</h4>
+                                        <p>Select the files to process.</p>
+                                    </div>
+                                    <span class="upload-card-icon"><i class="bi bi-cloud-arrow-up"></i></span>
+                                </div>
                                 <form method="post" enctype="multipart/form-data" action=".">
                                 {% csrf_token %}
-                                <div class="row">
+                                <div class="row upload-grid">
                                     <div class="col-xl-6">
                                         <div class="mb-3">
                                             <label class="form-label" for="transactionsfile">Transaction File Upload</label>
                                             <input type="file" class="form-control" id="transactionsfile" name="transactionsfile">
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label" for="batchfile">Batch Tranfer Upload</label>
+                                            <label class="form-label" for="batchfile">Batch Transfer Upload</label>
                                             <input type="file" class="form-control" id="batchfile" name="batchfile">
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label" for="disabledFile">Salary Upload</label>
+                                            <label class="form-label" for="salaryfile">Salary Upload</label>
                                             <input type="file" class="form-control" id="salaryfile" name="salaryfile">
                                         </div>
                                     </div>
@@ -70,7 +75,9 @@
                                 </div>
 
                                 <div class="submit-btn">
-                                    <button type="submit" class="btn btn-primary btn-lg">Upload Files</button>
+                                    <button type="submit" class="btn btn-theme btn-lg">
+                                        <i class="bi bi-upload me-2"></i>Upload Files
+                                    </button>
                                 </div>
                             </form>
 
@@ -92,9 +99,6 @@
                                 <div class="card-arrow-top-right"></div>
                                 <div class="card-arrow-bottom-left"></div>
                                 <div class="card-arrow-bottom-right"></div>
-                            </div>
-                            <div class="hljs-container">
-                                <pre><code class="xml" data-url="assets/data/form-elements/code-10.json"></code></pre>
                             </div>
                         </div>
                     </div>

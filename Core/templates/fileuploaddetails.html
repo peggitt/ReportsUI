@@ -20,11 +20,11 @@
                     <div class="col-xl-16">
                         <ul class="breadcrumb">
                             <li class="breadcrumb-item"><a href="#">Data Upload</a></li>
-                            <li class="breadcrumb-item active">Plutus RDataeport Viewer</li>
+                            <li class="breadcrumb-item active">Upload Review</li>
                         </ul>
                         
                         <h1 class="page-header">
-                            <p>View data Upload Details.</p>
+                            <p>Review uploaded data</p>
                             <p><strong>Data Type:</strong> {{ upload_type_label|default:"Uploaded Data" }}</p>
                         </h1>
                         
@@ -55,9 +55,9 @@
                                         <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="tab-{{ tab.key }}" role="tabpanel" aria-labelledby="tab-{{ tab.key }}-tab">
                                             {% if tab.summary %}
                                             <div class="d-flex flex-wrap gap-3 mb-3">
-                                                <span><strong>Total records:</strong> {{ tab.summary.rows|length }}</span>
-                                                <span><strong>Valid:</strong> {{ tab.summary.valid_count }}</span>
-                                                <span><strong>Invalid:</strong> {{ tab.summary.invalid_count }}</span>
+                                                <span class="upload-stat"><strong>Total records:</strong> {{ tab.summary.rows|length }}</span>
+                                                <span class="upload-stat upload-stat-success"><strong>Valid:</strong> {{ tab.summary.valid_count }}</span>
+                                                <span class="upload-stat upload-stat-danger"><strong>Invalid:</strong> {{ tab.summary.invalid_count }}</span>
                                             </div>
                                             <div class="table-responsive">
                                                 <table class="table text-nowrap w-100">
@@ -86,7 +86,7 @@
                                                 </table>
                                             </div>
                                             <div class="text-end mt-3">
-                                                <button type="button" class="btn btn-primary btn-sm" onclick="postUploadedData('{{ tab.key }}')">
+                                                <button type="button" class="btn btn-theme btn-sm" onclick="postUploadedData('{{ tab.key }}')">
                                                     Post {{ tab.label }}
                                                 </button>
                                             </div>
@@ -111,7 +111,8 @@
                         <!-- END #datatable -->
                         
                         <!-- Summary Section -->
-                        <div class="summary mt-4">
+                        <div class="summary upload-summary card mt-4">
+                            <div class="card-body">
                             <h4>Summary</h4>
                             {% if summary_counts %}
                                 {% for summary in summary_counts %}
@@ -124,6 +125,13 @@
                             {% else %}
                                 <p>No files were processed in this session.</p>
                             {% endif %}
+                            </div>
+                            <div class="card-arrow">
+                                <div class="card-arrow-top-left"></div>
+                                <div class="card-arrow-top-right"></div>
+                                <div class="card-arrow-bottom-left"></div>
+                                <div class="card-arrow-bottom-right"></div>
+                            </div>
                         </div>
                         <!-- END Summary Section -->
                         

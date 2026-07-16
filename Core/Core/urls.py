@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import path
 from Report.views import Home_view,Analytics_view,Reports_view,ReportDetails_view,RequestReport_view,download_report
 from Report.views import RequestReportxlsx_view,Posted_view,FailedPosted_view
+from Report.views import ReportFieldSearchConfig_view, ReportFieldSearchData_view
 from FileProcessing.views import DataUpload_view,post_session_data,ReconUpload_view,run_recon,reset_recon,download_reconciled,download_unreconciled
 from Report.views import Customers_view
 
@@ -42,6 +43,8 @@ urlpatterns = [
     path('reports/<str>', ReportDetails_view,name='Home'),
     path('requestreport/', RequestReport_view,name='Home'),
     path('requestreportxls/', RequestReportxlsx_view,name='Home'),
+    path('report-field-search/config/', ReportFieldSearchConfig_view, name='ReportFieldSearchConfig'),
+    path('report-field-search/query/', ReportFieldSearchData_view, name='ReportFieldSearchData'),
     path('media/ReportFiles/<str:file_name>/', download_report, name='download_report'),
 ]
 
