@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>Apex | Data Exchange</title>
+	<title>Apex | USSD Customer Services</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="description" content="" />
 	<meta name="author" content="" />
@@ -23,6 +23,12 @@
 	<link href="{% static 'assets/plugins/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css' %}" rel="stylesheet" />
 	<link href="{% static 'assets/plugins/bootstrap-table/dist/bootstrap-table.min.css' %}" rel="stylesheet" />
 	<link href="{% static 'assets/css/toastr.css' %}" rel="stylesheet" />
+	<link href="{% static 'assets/css/corporate-banking.css' %}" rel="stylesheet" />
+	<script>
+		if (window.self !== window.top) {
+			document.documentElement.classList.add('embedded-portal');
+		}
+	</script>
 
 	<style>
 
@@ -86,7 +92,7 @@
 					<span class="brand-img">
 						<span class="brand-img-text text-theme">A</span>
 					</span>
-					<span class="brand-text">Apex Data Exchange</span>
+					<span class="brand-text">Apex USSD Services</span>
 				</a>
 			</div>
 			<!-- END brand -->

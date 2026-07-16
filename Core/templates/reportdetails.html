@@ -126,23 +126,39 @@
 </div>
 <!-- END #content -->
 
-<div class="modal fade" id="reportFieldSearchModal" tabindex="-1" aria-labelledby="reportFieldSearchModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
+<div class="modal fade portal-search-modal" id="reportFieldSearchModal" tabindex="-1" aria-labelledby="reportFieldSearchModalLabel" aria-describedby="reportFieldSearchHelp" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" role="document">
             <div class="modal-header">
-                <h5 class="modal-title" id="reportFieldSearchModalLabel">Search</h5>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="portal-search-modal-icon"><i class="bi bi-search"></i></span>
+                    <div>
+                        <h5 class="modal-title" id="reportFieldSearchModalLabel">Search</h5>
+                        <p id="reportFieldSearchHelp" class="modal-subtitle">Enter one or more filters, then select a matching record.</p>
+                    </div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="row g-3" id="reportSearchFieldsContainer"></div>
-                <div class="mt-3">
-                    <button type="button" class="btn btn-outline-theme" id="btnRunFieldSearch">Search</button>
+                <section class="portal-search-filters" aria-label="Search filters">
+                    <div class="row g-3" id="reportSearchFieldsContainer"></div>
+                    <div class="portal-search-actions">
+                        <small class="portal-search-hint">Press Enter to search</small>
+                        <button type="button" class="btn btn-theme" id="btnRunFieldSearch">
+                            <i class="bi bi-search me-2"></i><span>Search records</span>
+                        </button>
+                    </div>
+                </section>
+                <div class="portal-search-results-header">
+                    <div>
+                        <h6>Search results</h6>
+                        <span id="reportSearchResultCount" role="status" aria-live="polite">Run a search to view records</span>
+                    </div>
                 </div>
-                <hr />
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered" id="reportFieldSearchResults">
+                <div class="table-responsive portal-search-results">
+                    <table class="table table-hover align-middle mb-0" id="reportFieldSearchResults">
                         <thead></thead>
-                        <tbody></tbody>
+                        <tbody><tr><td class="text-center portal-search-empty">Enter search criteria above.</td></tr></tbody>
                     </table>
                 </div>
             </div>

@@ -44,6 +44,7 @@ class TrustedEmbedMiddlewareTests(SimpleTestCase):
             response["Content-Security-Policy"],
             "frame-ancestors https://core.example.test",
         )
+        self.assertEqual(response["Cache-Control"], "no-store")
 
     def test_token_is_rejected_for_top_level_navigation(self):
         response = self.middleware(self.request("/?embed_token=" + self.token(), "document"))

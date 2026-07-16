@@ -74,6 +74,16 @@ REPORT_EMBED_ALLOWED_ANCESTORS = os.environ.get(
     "REPORT_EMBED_ALLOWED_ANCESTORS", "'none'"
 ).split()
 
+# A third-party iframe needs SameSite=None cookies, which browsers only accept
+# over HTTPS. Different localhost ports are same-site, so local HTTP keeps Lax.
+REPORT_EMBED_CROSS_SITE_COOKIES = os.environ.get(
+    "REPORT_EMBED_CROSS_SITE_COOKIES", "False"
+).lower() in {"1", "true", "yes", "on"}
+SESSION_COOKIE_SAMESITE = "None" if REPORT_EMBED_CROSS_SITE_COOKIES else "Lax"
+SESSION_COOKIE_SECURE = REPORT_EMBED_CROSS_SITE_COOKIES
+CSRF_COOKIE_SAMESITE = SESSION_COOKIE_SAMESITE
+CSRF_COOKIE_SECURE = REPORT_EMBED_CROSS_SITE_COOKIES
+
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',  # Default
     'allauth.account.auth_backends.AuthenticationBackend',

@@ -123,6 +123,7 @@ function clearSearchGrid() {
     $("#reportFieldSearchResults thead").empty();
     $("#reportFieldSearchResults tbody").empty();
     searchResultsCache = [];
+    $("#reportSearchResultCount").text("Run a search to view records");
 }
 
 function setEmptyGridMessage(message, colSpan) {
@@ -148,12 +149,16 @@ function openReportSearchPopup(inputElement, config) {
 
     $("#reportSearchFieldsContainer").html(fieldsHtml);
     clearSearchGrid();
+    setEmptyGridMessage("Enter search criteria above.", 1);
 
     if (!reportFieldSearchModal) {
         var modalElement = document.getElementById("reportFieldSearchModal");
         reportFieldSearchModal = new bootstrap.Modal(modalElement);
     }
     reportFieldSearchModal.show();
+    setTimeout(function() {
+        $("#reportSearchFieldsContainer .popup-search-input").first().trigger("focus");
+    }, 180);
 }
 
 function renderSearchResults(rows, displayColumns) {
@@ -190,6 +195,7 @@ function renderSearchResults(rows, displayColumns) {
 
     $("#reportFieldSearchResults thead").html(headerHtml);
     $("#reportFieldSearchResults tbody").html(bodyHtml);
+    $("#reportSearchResultCount").text(rows.length === 1 ? "1 record found" : rows.length + " records found");
 }
 
 function runConfiguredFieldSearch() {
@@ -202,6 +208,11 @@ function runConfiguredFieldSearch() {
         var fieldName = $(this).data("field-name");
         criteria[fieldName] = ($(this).val() || "").trim();
     });
+
+    var searchButton = $("#btnRunFieldSearch");
+    searchButton.prop("disabled", true).addClass("is-loading");
+    searchButton.find("span").text("Searching...");
+    $("#reportSearchResultCount").text("Searching records...");
 
     $.ajax({
         type: "POST",
@@ -220,6 +231,10 @@ function runConfiguredFieldSearch() {
             clearSearchGrid();
             setEmptyGridMessage("Search failed.", 1);
             showLookupError(message || "Unable to search records.");
+        },
+        complete: function() {
+            searchButton.prop("disabled", false).removeClass("is-loading");
+            searchButton.find("span").text("Search records");
         }
     });
 }
@@ -279,6 +294,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
     $("#btnRunFieldSearch").on("click", function() {
         runConfiguredFieldSearch();
+    });
+
+    $(document).on("keydown", "#reportSearchFieldsContainer .popup-search-input", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            runConfiguredFieldSearch();
+        }
     });
 
     $(document).on("click", ".btn-select-search-row", function() {
